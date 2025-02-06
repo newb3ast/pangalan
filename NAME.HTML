@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Application Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[readonly] {
+            background-color: #f0f0f0;
+        }
+        .output-box {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            color: #333;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        /* Shake animation */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Apply the shake effect when right-clicked */
+        .shake {
+            animation: shake 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Naming Convention</h2>
+    
+    <div class="form-group">
+        <label for="id">ID</label>
+        <input type="text" id="id" placeholder="Enter Sharepoint Request ID" required 
+               maxlength="20" oninput="validateID(this)" />
+    </div>
+
+    <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" required>
+            <option value="NS">NS - New System Enhancement</option>
+            <option value="SE">SE - System Enhancement</option>
+            <option value="PS">PS - Production System</option>
+            <option value="AH">AH - Ad-hoc</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="service">Service</label>
+        <select id="service" required>
+            <option value="WPT">WPT - Web app PT</option>
+            <option value="APT">APT - API PT</option>
+            <option value="MPT">MPT - Mobile PT</option>
+            <option value="NPT">NPT - Network PT</option>
+            <option value="TPT">TPT - Thick client PT</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="systemName">System Name (max 20 characters)</label>
+        <input type="text" id="systemName" maxlength="20" required>
+    </div>
+
+    <div class="form-group">
+        <label for="version">Version</label>
+        <input type="text" id="version" placeholder="e.g., v1.0, v2.3.4" 
+               pattern="^v\d+(\.\d+)*$" title="Version must start with 'v' followed by numbers and periods (e.g., v1.0, v2.3.4)" required
+               oninput="validateVersion(this)" />
+    </div>
+
+    <div class="form-group">
+        <label for="output">Output</label>
+        <input type="text" id="output" class="output-box" readonly>
+    </div>
+
+    <button onclick="generateFormat()">Give Name</button>
+</div>
+
+<script>
+    // Disable right-click on the page to prevent context menu and trigger screen shake
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault(); // Prevent right-click menu
+        document.body.classList.add('shake'); // Add shake class to the body
+        setTimeout(() => {
+            document.body.classList.remove('shake'); // Remove shake class after the animation ends
+        }, 500); // 500ms = duration of the animation
+    });
+
+    // Function to sanitize user input to prevent XSS attacks
+    function sanitizeInput(input) {
+        let div = document.createElement('div');
+        if (input) {
+            div.appendChild(document.createTextNode(input));
+        }
+        return div.innerHTML;
+    }
+
+    // Function to validate the ID input to ensure it's a valid numeric input and no more than 20 digits
+    function validateID(input) {
+        let value = input.value;
+
+        // Remove non-numeric characters and ensure the length is less than or equal to 20
+        input.value = value.replace(/\D/g, '').slice(0, 20); // Remove all non-digits and restrict to 20 characters
+    }
+
+    // Function to validate the Version input (only numbers, period, and letter 'v')
+    function validateVersion(input) {
+        // Regex pattern: starts with 'v' and allows numbers and periods
+        let value = input.value;
+
+        // Remove any invalid characters (anything other than 'v', digits, or period)
+        input.value = value.replace(/[^v0-9.]/g, '');
+    }
+
+    // Function to generate the format
+    function generateFormat() {
+        const id = document.getElementById('id').value;
+        const category = document.getElementById('category').value;
+        const service = document.getElementById('service').value;
+        const systemName = document.getElementById('systemName').value;
+        const version = document.getElementById('version').value;
+
+        // Ensure all inputs are valid
+        if (!id || !category || !service || !systemName || !version) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        // Sanitize inputs for XSS protection
+        const sanitizedSystemName = sanitizeInput(systemName);
+        const sanitizedVersion = sanitizeInput(version);
+
+        // Generate the formatted string
+        const formattedText = `ISD-${id}-${category}-${service}-${sanitizedSystemName}-${sanitizedVersion}`;
+
+        // Output the result to the readonly text box
+        document.getElementById('output').value = formattedText;
+    }
+</script>
+
+</body>
+</html>
